@@ -12,7 +12,7 @@ class MyWidget(QWidget, Ui_Form):
         super(MyWidget, self).__init__()
         self.conn = sqlite3.connect('stuff_db.db')
         self.setupUI(self)
-        self.cbPost.addItems(STAFF_POSTS)
+        self.comboBox.addItems(STAFF_POSTS)
         self.pbOpen.clicked.connect(self.open_file)
         self.pbInsert.clicked.connect(self.insert_staff)
 
@@ -37,7 +37,7 @@ class MyWidget(QWidget, Ui_Form):
 
     def insert_staff(self):
         row = [self.leFio.text(), self.sbAge.text(), 'муж' if self.rbMale.isChecked() else 'жен',
-               self.lePhone.text(), self.leEmail.text(), self.cbPost.itemText(self.cbPost.currentIndex()),
+               self.lePhone.text(), self.leEmail.text(), self.comboBox.itemText(self.comboBox.currentIndex()),
                self.sbExp.text()]
         try:
             cur = self.conn.cursor()
@@ -63,6 +63,19 @@ class MyWidget(QWidget, Ui_Form):
             for j, elem in enumerate(row):
                 self.twStuffs.setItem(i, j, QTableWidgetItem(str(elem)))
         self.twStuffs.resizeColumnsToContents()
+
+    def delete_staff(self):
+        row = self.twStaffs.currentRow()
+        num = self.twStaffs.item(row, 0).text()
+        try:
+            cur = self.conn.cursor()
+            cur.execute(f"delete from staff where num = {num}")
+            self.conn.commit()
+            cur.close()
+        except Exception as e:
+            print(f"Исключение: {e}")
+            return e
+        self.update_twstuffs()
 
 
 if __name__ == '__main__':
