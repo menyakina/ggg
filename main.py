@@ -4,13 +4,17 @@ import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QTableWidgetItem
 from form_stuff import Ui_Form
 
+STAFF_POSTS = ['бухгалтер', 'инженер', 'программист']
+
 
 class MyWidget(QWidget, Ui_Form):
     def __init__(self):
         super(MyWidget, self).__init__()
         self.conn = sqlite3.connect('stuff_db.db')
         self.setupUI(self)
-        self.pbOpen.clicked.connect(self.open)
+        self.cbPost.addItems(STAFF_POSTS)
+        self.pbOpen.clicked.connect(self.open_file)
+        self.pbInsert.clicked.connect(self.insert_staff)
 
     def open_file(self):
         try:
@@ -19,7 +23,7 @@ class MyWidget(QWidget, Ui_Form):
             col_name = [i[0] for i in data.description]
             data_rows = data.fetchall()
         except Exception as e:
-            print(f"Ошибки при подключении к БД.")
+            print(f"Ошибки при подключении к БД.{e}")
             return e
         self.twStuffs.setColumnCount(len(col_name))
         self.twStuffs.setHorizontalHeaderLabels(col_name)
@@ -32,12 +36,12 @@ class MyWidget(QWidget, Ui_Form):
         self.twStuffs.resizeColumnsToContents()
 
     def insert_staff(self):
-        row = [self.leFio.text(), 'муж' if self.rbMale.isChecked() else 'жен', self.sbAge.text(),
+        row = [self.leFio.text(), self.sbAge.text(), 'муж' if self.rbMale.isChecked() else 'жен',
                self.lePhone.text(), self.leEmail.text(), self.cbPost.itemText(self.cbPost.currentIndex()),
                self.sbExp.text()]
         try:
             cur = self.conn.cursor()
-            cur.execute(f"""insert into stuff(fio, sex, age, phone, email, position, exp)
+            cur.execute(f"""insert into stuff(fio, age, sex, phone, email, position, exp)
                 values('{row[0]}', '{row[1]}', {row[2]}, '{row[3]}', '{row[4]}', '{row[5]}', {row[6]})""")
             self.conn.commit()
             cur.close()
@@ -46,7 +50,7 @@ class MyWidget(QWidget, Ui_Form):
             return e
         self.update_twStuffs()
 
-    def update_twstaffs(self, query="select * from stuff"):
+    def update_twstuffs(self, query="select * from stuff"):
         try:
             cur = self.conn.cursor()
             data = cur.execute(query).fetchall()
